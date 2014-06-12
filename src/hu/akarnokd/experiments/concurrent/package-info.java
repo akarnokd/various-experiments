@@ -14,29 +14,7 @@
  * the License.
  */
 
-package hu.akarnokd.experiments;
-
-import rx.Observable;
-import gnu.trove.list.array.TIntArrayList;
-
-import com.google.common.collect.Sets;
-
 /**
- * Just verify if all dependency libraries are accessible.
+ * Concurrency classes and algorithms
  */
-public class DependencyVerify {
-	public static void main(String[] args) {
-		// Java 8
-		Runnable r = () -> System.out.println("Hello world!");
-		r.run();
-	
-		// Guava
-		System.out.println(Sets.newHashSet());
-
-		// Trove
-		System.out.println(new TIntArrayList());
-		
-		// RxJava
-		Observable.just(1).subscribe(System.out::println, Throwable::printStackTrace, r::run);
-	}
-}
+package hu.akarnokd.experiments.concurrent;

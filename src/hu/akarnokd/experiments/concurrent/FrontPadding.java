@@ -13,30 +13,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+package hu.akarnokd.experiments.concurrent;
 
-package hu.akarnokd.experiments;
-
-import rx.Observable;
-import gnu.trove.list.array.TIntArrayList;
-
-import com.google.common.collect.Sets;
+import java.io.Serializable;
 
 /**
- * Just verify if all dependency libraries are accessible.
+ * Padding up to 128 bytes at the front.
  */
-public class DependencyVerify {
-	public static void main(String[] args) {
-		// Java 8
-		Runnable r = () -> System.out.println("Hello world!");
-		r.run();
-	
-		// Guava
-		System.out.println(Sets.newHashSet());
-
-		// Trove
-		System.out.println(new TIntArrayList());
-		
-		// RxJava
-		Observable.just(1).subscribe(System.out::println, Throwable::printStackTrace, r::run);
-	}
+abstract class FrontPadding implements Serializable {
+    /** */
+	private static final long serialVersionUID = -596356687591714352L;
+	/** Padding. */
+	public transient long p1, p2, p3, p4, p5, p6;           // 48 bytes (header is 16 bytes)
+	/** Padding. */
+    public transient long p8, p9, p10, p11, p12, p13, p14, p15; // 64 bytes
 }

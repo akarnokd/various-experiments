@@ -14,29 +14,23 @@
  * the License.
  */
 
-package hu.akarnokd.experiments;
+package hu.akarnokd.experiments.concurrent;
 
-import rx.Observable;
-import gnu.trove.list.array.TIntArrayList;
+import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.Sets;
+import org.junit.Test;
 
 /**
- * Just verify if all dependency libraries are accessible.
+ * 
  */
-public class DependencyVerify {
-	public static void main(String[] args) {
-		// Java 8
-		Runnable r = () -> System.out.println("Hello world!");
-		r.run();
-	
-		// Guava
-		System.out.println(Sets.newHashSet());
+public class PTLQueueTest {
 
-		// Trove
-		System.out.println(new TIntArrayList());
+	@Test
+	public void test() {
+		PTLQueue<Integer> queue = new PTLQueue<>(32);
+		queue.offer(1);
 		
-		// RxJava
-		Observable.just(1).subscribe(System.out::println, Throwable::printStackTrace, r::run);
+		assertEquals((Integer)1, queue.poll());
 	}
+
 }
