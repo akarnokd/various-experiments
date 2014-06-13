@@ -17,8 +17,12 @@
 package hu.akarnokd.experiments.concurrent;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import rx.Observable;
 
 /**
  * 
@@ -31,6 +35,17 @@ public class PTLQueueTest {
 		queue.offer(1);
 		
 		assertEquals((Integer)1, queue.poll());
+	}
+	@Test
+	public void testMany() {
+		PTLQueue<Integer> queue = new PTLQueue<>(32);
+		Observable.range(0, 32).forEach(e -> queue.offer(e));
+
+		assertFalse(queue.offer(32));
+		
+		assertEquals((Integer)0, queue.poll());
+
+		assertTrue(queue.offer(32));
 	}
 
 }

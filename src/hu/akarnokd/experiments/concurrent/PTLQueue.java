@@ -64,13 +64,17 @@ public final class PTLQueue<E> {
 	}
 	public boolean offer(E value) {
 		nullCheck(value);
-		long ticket = offerCursor.getAndIncrement();
-		int slot = (int)ticket & mask;
-		if (turns.get(slot) != ticket) {
-			return false;
+		for (;;) {
+			long ticket = offerCursor.get();
+			int slot = (int)ticket & mask;
+			if (turns.get(slot) != ticket) {
+				return false;
+			}
+			if (offerCursor.compareAndSet(ticket, ticket + 1)) {
+				values.set(slot, value);
+				return true;
+			}
 		}
-		values.set(slot, value);
-		return true;
 	}
 	private void nullCheck(E value) {
 		if (value == null) {
@@ -87,7 +91,7 @@ public final class PTLQueue<E> {
 			E v = values.get(slot);
 			if (v != null) {
 				values.lazySet(slot, null);
-				turns.set(slot, ticket + mask + 1);
+				turns.set(slot, ticket /* + mask + 1*/);
 				return v;
 			}
 			ifWait.run();
@@ -106,7 +110,7 @@ public final class PTLQueue<E> {
 			}
 			if (pollCursor.compareAndSet(ticket, ticket + 1)) {
 				values.lazySet(slot, null);
-				turns.set(slot, ticket + mask + 1);
+				turns.set(slot, ticket + length);
 				return v;
 			}
 		}
@@ -130,7 +134,7 @@ public final class PTLQueue<E> {
 			}
 			if (pollCursor.compareAndSet(ticket, ticket + 1)) {
 				values.lazySet(slot, null);
-				turns.set(slot, ticket + mask + 1);
+				turns.set(slot, ticket + length);
 				return v;
 			}
 		}

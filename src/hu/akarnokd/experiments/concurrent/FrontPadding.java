@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 /**
  * Padding up to 128 bytes at the front.
+ * Based on netty's implementation
  */
 abstract class FrontPadding implements Serializable {
     /** */
