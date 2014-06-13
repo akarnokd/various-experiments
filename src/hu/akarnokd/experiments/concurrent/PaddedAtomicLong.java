@@ -17,7 +17,7 @@
 package hu.akarnokd.experiments.concurrent;
 
 /**
- * A padded atomic reference to fill in 4 cache lines to avoid any false sharing or
+ * A padded atomic integer to fill in 4 cache lines to avoid any false sharing or
  * adjacent prefetch.
  * Based on Netty's implementation.
  */
@@ -27,5 +27,5 @@ public final class PaddedAtomicLong extends PaddedAtomicLongBase {
 	/** Padding. */
 	public transient long p16, p17, p18, p19, p20, p21, p22;      // 56 bytes (the remaining 8 is in the base)
 	/** Padding. */
-    public transient long p24, p25, p26, p27, p28, p29, p30; // 64 bytes
+    public transient long p24, p25, p26, p27, p28, p29, p30, p31; // 64 bytes
 }

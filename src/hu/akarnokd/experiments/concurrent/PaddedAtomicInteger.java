@@ -17,12 +17,11 @@
 package hu.akarnokd.experiments.concurrent;
 
 /**
- * A padded atomic reference to fill in 4 cache lines to avoid any false sharing or
+ * A padded atomic integer to fill in 4 cache lines to avoid any false sharing or
  * adjacent prefetch.
  * Based on Netty's implementation.
- * @param <T> the reference type managed
  */
-public final class PaddedAtomicReference<T> extends PaddedAtomicReferenceBase<T> {
+public final class PaddedAtomicInteger extends PaddedAtomicIntegerBase {
     /** */
 	private static final long serialVersionUID = 8781891581317286855L;
 	/** Padding. */
