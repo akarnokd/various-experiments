@@ -18,8 +18,6 @@ package hu.akarnokd.experiments.concurrent;
 
 import java.util.*;
 
-import rx.internal.util.PlatformDependent;
-
 /**
  * A single-producer single-consumer circular array which resizes to a higher capacity once it fills
  * its smaller buffer.
@@ -33,9 +31,6 @@ public class AtomicArrayQueueUnsafe extends AbstractQueue<Object> {
     static final long HIGH_TRAFFIC_QUEUE_THRESHOLD;
     static {
         long _size = 128;
-        if (PlatformDependent.isAndroid()) {
-            _size = Long.MAX_VALUE;
-        }
 
         // possible system property for overriding
         String sizeFromProperty = System.getProperty("rx.ring-buffer.resize-traffic");

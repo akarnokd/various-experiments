@@ -16,6 +16,7 @@
 
 package hu.akarnokd.experiments.concurrent;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.*;
 
 /**
@@ -50,23 +51,20 @@ public class IETLQueue<E> {
         AtomicLongArray in = ingress;
         AtomicLongArray eg = egress;
         AtomicReferenceArray<E> vs = values;
-        long ticket = oc.get();
         for (;;) {
+            long ticket = oc.get();
             int slot = (int)ticket & m;
             if (in.get(slot) != ticket) {
-                if ((oc.get() ^ ticket) != 0) { // slot taken and consumed
-                    ticket = oc.get();
+                if ((oc.get() ^ ticket) != 0) { // slot taken and consumed 
                     continue;
                 }
                 return false;
             }
-            if (in.compareAndSet(slot, ticket, ticket | 0x8000_0000_0000_0000L)) {
-                oc.incrementAndGet();
+            if (oc.compareAndSet(ticket, ticket + 1)) {
                 vs.lazySet(slot, value);
                 eg.set(slot, ticket);
                 return true;
             }
-            ticket++;
         }
     }
     public E poll() {
@@ -75,25 +73,37 @@ public class IETLQueue<E> {
         AtomicLongArray in = ingress;
         AtomicLongArray eg = egress;
         AtomicReferenceArray<E> vs = values;
+        ThreadLocalRandom tlr = ThreadLocalRandom.current();
+        int retry = tlr.nextInt(128);
         for (;;) {
             long ticket = pc.get();
             int slot = (int)ticket & m;
-            
-            E v = vs.get(slot);
-            
-            if (v == null) {
-                long ins = in.get(slot);
-                if (ins >= 0 || (ins & 0x7FFF_FFFF_FFFF_FFFFL) != ticket) {
+            if (in.get(slot) != ticket) {
+                if (pc.get() != ticket) { // somebody else took this slot
                     continue;
                 }
-                if (eg.get(slot) != ticket) {
+                return null;
+            }
+            if (eg.get(slot) != ticket) { // offer is not finished yet
+                if (retry-- <= 0) {
+                    if (offerCursor.get() > ticket) {
+                        retry = tlr.nextInt(128);
+                        continue;
+                    }
+                    return null; // not expecting it
+                }
+                continue;
+            }
+            E v = vs.get(slot);
+            if (v == null) {
+                if (((pc.get() ^ ticket) | (in.get(slot) ^ ticket)) != 0) { // somebody else took this slot
                     continue;
                 }
                 return null;
             }
             if (pc.compareAndSet(ticket, ticket + 1)) {
                 vs.lazySet(slot, null);
-                in.set(slot, ticket + 1 + m);
+                in.set(slot, ticket + m + 1);
                 return v;
             }
         }

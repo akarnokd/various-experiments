@@ -54,7 +54,7 @@ public class IETLQueueTest {
             throw new RuntimeException(ex);
         }
     }
-    @Test(timeout = 1000)
+    @Test/*(timeout = 1000)*/
     public void testEmpty() {
         IETLQueue<Integer> queue = new IETLQueue<>(32);
         for (int i = 0; i < 1000; i++) {

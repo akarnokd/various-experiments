@@ -19,8 +19,6 @@ package hu.akarnokd.experiments.concurrent;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-import rx.internal.util.unsafe.Pow2;
-
 /**
  * 
  */
@@ -47,8 +45,8 @@ public class AtomicArrayQueue extends AbstractQueue<Object> {
     long readerIndex;
     long writerIndex;
     public AtomicArrayQueue(int initial, int maxCapacity) {
-        int is = Pow2.roundToPowerOfTwo(initial);
-        int ms = Pow2.roundToPowerOfTwo(maxCapacity);
+        int is = Pow2.pow2(initial);
+        int ms = Pow2.pow2(maxCapacity);
         
         this.smallMask = is - 1;
         this.largeMask = ms - 1;
