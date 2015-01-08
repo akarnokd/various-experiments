@@ -50,20 +50,23 @@ public class IETLQueue<E> {
         AtomicLongArray in = ingress;
         AtomicLongArray eg = egress;
         AtomicReferenceArray<E> vs = values;
+        long ticket = oc.get();
         for (;;) {
-            long ticket = oc.get();
             int slot = (int)ticket & m;
             if (in.get(slot) != ticket) {
-                if ((oc.get() ^ ticket) != 0) { // slot taken and consumed 
+                if ((oc.get() ^ ticket) != 0) { // slot taken and consumed
+                    ticket = oc.get();
                     continue;
                 }
                 return false;
             }
-            if (oc.compareAndSet(ticket, ticket + 1)) {
+            if (in.compareAndSet(slot, ticket, ticket | 0x8000_0000_0000_0000L)) {
+                oc.incrementAndGet();
                 vs.lazySet(slot, value);
                 eg.set(slot, ticket);
                 return true;
             }
+            ticket++;
         }
     }
     public E poll() {
@@ -75,25 +78,22 @@ public class IETLQueue<E> {
         for (;;) {
             long ticket = pc.get();
             int slot = (int)ticket & m;
-            if (in.get(slot) != ticket) {
-                if (pc.get() != ticket) { // somebody else took this slot
+            
+            E v = vs.get(slot);
+            
+            if (v == null) {
+                long ins = in.get(slot);
+                if (ins >= 0 || (ins & 0x7FFF_FFFF_FFFF_FFFFL) != ticket) {
                     continue;
                 }
-                return null;
-            }
-            if (eg.get(slot) != ticket) { // offer is not finished yet
-                continue;
-            }
-            E v = vs.get(slot);
-            if (v == null) {
-                if (((pc.get() ^ ticket) | (in.get(slot) ^ ticket)) != 0) { // somebody else took this slot
+                if (eg.get(slot) != ticket) {
                     continue;
                 }
                 return null;
             }
             if (pc.compareAndSet(ticket, ticket + 1)) {
                 vs.lazySet(slot, null);
-                in.set(slot, ticket + m + 1);
+                in.set(slot, ticket + 1 + m);
                 return v;
             }
         }
