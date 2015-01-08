@@ -55,25 +55,27 @@ public class IETLQueueTest {
 		}
 	}
 	@Test
-	public void test2Producer1BecomesConsumer() throws InterruptedException {
+	public void test2Producer1BecomesConsumer() throws InterruptedException, ExecutionException {
 		IETLQueue<Integer> queue = new IETLQueue<>(32);
 		final CyclicBarrier b = new CyclicBarrier(2);
+		ExecutorService exec = Executors.newFixedThreadPool(1);
 		final Integer[] slots = new Integer[128];
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < 1000000; i++) {
 			slots[0] = null;
 			slots[64] = null;
-			Thread t = new Thread(() -> {
+			final int j = i;
+			Future<?> f = exec.submit(() -> {
 				await(b);
-				queue.offer(1);
+				queue.offer(-j);
 				slots[64] = queue.poll();
 			});
-			t.start();
 			await(b);
-			queue.offer(0);
+			queue.offer(j);
 			slots[0] = queue.poll();
-			t.join();
+			f.get();
 			assertTrue(slots[0] != null);
 			assertTrue(slots[64] != null);
 		}
+		exec.shutdown();
 	}
 }

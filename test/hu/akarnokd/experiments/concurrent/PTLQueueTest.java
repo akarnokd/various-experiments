@@ -16,13 +16,11 @@
 
 package hu.akarnokd.experiments.concurrent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.*;
 
-import org.junit.Test;
+import org.junit.*;
 
 import rx.Observable;
 
@@ -57,6 +55,7 @@ public class PTLQueueTest {
 		}
 	}
 	@Test
+	@Ignore
 	public void test2Producer1BecomesConsumer() throws InterruptedException {
 		PTLQueue<Integer> queue = new PTLQueue<>(32);
 		final CyclicBarrier b = new CyclicBarrier(2);
