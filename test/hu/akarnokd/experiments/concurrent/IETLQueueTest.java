@@ -16,9 +16,7 @@
 
 package hu.akarnokd.experiments.concurrent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.concurrent.*;
 
@@ -29,18 +27,18 @@ import rx.Observable;
 /**
  * 
  */
-public class PTLQueueTest {
+public class IETLQueueTest {
 
 	@Test
 	public void test() {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
+		IETLQueue<Integer> queue = new IETLQueue<>(32);
 		queue.offer(1);
 		
 		assertEquals((Integer)1, queue.poll());
 	}
 	@Test
 	public void testMany() {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
+		IETLQueue<Integer> queue = new IETLQueue<>(32);
 		Observable.range(0, 32).forEach(e -> queue.offer(e));
 
 		assertFalse(queue.offer(32));
@@ -58,7 +56,7 @@ public class PTLQueueTest {
 	}
 	@Test
 	public void test2Producer1BecomesConsumer() throws InterruptedException {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
+		IETLQueue<Integer> queue = new IETLQueue<>(32);
 		final CyclicBarrier b = new CyclicBarrier(2);
 		final Integer[] slots = new Integer[128];
 		for (int i = 0; i < 100000; i++) {
