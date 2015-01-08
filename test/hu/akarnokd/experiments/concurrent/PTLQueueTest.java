@@ -29,52 +29,57 @@ import rx.Observable;
  */
 public class PTLQueueTest {
 
-	@Test
-	public void test() {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
-		queue.offer(1);
-		
-		assertEquals((Integer)1, queue.poll());
-	}
-	@Test
-	public void testMany() {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
-		Observable.range(0, 32).forEach(e -> queue.offer(e));
+    @Test
+    public void test() {
+        PTLQueue<Integer> queue = new PTLQueue<>(32);
+        queue.offer(1);
 
-		assertFalse(queue.offer(32));
-		
-		assertEquals((Integer)0, queue.poll());
+        assertEquals((Integer)1, queue.poll());
+    }
+    @Test
+    public void testMany() {
+        PTLQueue<Integer> queue = new PTLQueue<>(32);
+        Observable.range(0, 32).forEach(e -> queue.offer(e));
 
-		assertTrue(queue.offer(32));
-	}
-	private static void await(CyclicBarrier b) {
-		try {
-			b.await();
-		} catch (InterruptedException | BrokenBarrierException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
-	@Test
-	@Ignore
-	public void test2Producer1BecomesConsumer() throws InterruptedException {
-		PTLQueue<Integer> queue = new PTLQueue<>(32);
-		final CyclicBarrier b = new CyclicBarrier(2);
-		final Integer[] slots = new Integer[128];
-		for (int i = 0; i < 100000; i++) {
-			slots[0] = null;
-			slots[64] = null;
-			Thread t = new Thread(() -> {
-				await(b);
-				queue.offer(1);
-				slots[64] = queue.poll();
-			});
-			t.start();
-			await(b);
-			queue.offer(0);
-			slots[0] = queue.poll();
-			t.join();
-			assertTrue(slots[0] != null);
-			assertTrue(slots[64] != null);
-		}
-	}
+        assertFalse(queue.offer(32));
+
+        assertEquals((Integer)0, queue.poll());
+
+        assertTrue(queue.offer(32));
+    }
+    private static void await(CyclicBarrier b) {
+        try {
+            b.await();
+        } catch (InterruptedException | BrokenBarrierException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    @Test
+    @Ignore
+    public void test2Producer1BecomesConsumer() throws InterruptedException, ExecutionException {
+        PTLQueue<Integer> queue = new PTLQueue<>(32);
+        final CyclicBarrier b = new CyclicBarrier(2);
+        ExecutorService exec = Executors.newFixedThreadPool(1);
+        final Integer[] slots = new Integer[128];
+        try {
+            for (int i = 0; i < 1000000; i++) {
+                slots[0] = null;
+                slots[64] = null;
+                final int j = i;
+                Future<?> f = exec.submit(() -> {
+                    await(b);
+                    queue.offer(-j);
+                    slots[64] = queue.poll();
+                });
+                await(b);
+                queue.offer(j);
+                slots[0] = queue.poll();
+                f.get();
+                assertTrue(slots[0] != null);
+                assertTrue(slots[64] != null);
+            }
+        } finally {
+            exec.shutdown();
+        }
+    }
 }
