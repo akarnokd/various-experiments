@@ -60,6 +60,7 @@ public class IETLQueue<E> {
                 return false;
             }
             if (oc.compareAndSet(ticket, ticket + 1)) {
+                in.lazySet(slot, -ticket); // indicate the slot is about to be used
                 vs.lazySet(slot, value);
                 eg.set(slot, ticket);
                 return true;
@@ -75,18 +76,18 @@ public class IETLQueue<E> {
         for (;;) {
             long ticket = pc.get();
             int slot = (int)ticket & m;
-            if (in.get(slot) != ticket) {
-                if (pc.get() != ticket) {
+            if (in.get(slot) != -ticket) {
+                if (pc.get() != ticket) { // somebody else took this slot
                     continue;
                 }
                 return null;
             }
-            if (eg.get(slot) != ticket) {
+            if (eg.get(slot) != ticket) { // offer is not finished yet
                 continue;
             }
             E v = vs.get(slot);
             if (v == null) {
-                if (((pc.get() ^ ticket) | (in.get(slot) ^ ticket)) != 0) {
+                if (((pc.get() ^ ticket) | (in.get(slot) ^ ticket)) != 0) { // somebody else took this slot
                     continue;
                 }
                 return null;

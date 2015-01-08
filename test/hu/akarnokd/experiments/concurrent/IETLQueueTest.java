@@ -54,6 +54,15 @@ public class IETLQueueTest {
             throw new RuntimeException(ex);
         }
     }
+    @Test(timeout = 1000)
+    public void testEmpty() {
+        IETLQueue<Integer> queue = new IETLQueue<>(32);
+        for (int i = 0; i < 1000; i++) {
+            queue.offer(i);
+            assertEquals((Integer)i, queue.poll());
+            assertEquals(null, queue.poll());
+        }
+    }
     @Test
     public void test2Producer1BecomesConsumer() throws InterruptedException, ExecutionException {
         IETLQueue<Integer> queue = new IETLQueue<>(32);
