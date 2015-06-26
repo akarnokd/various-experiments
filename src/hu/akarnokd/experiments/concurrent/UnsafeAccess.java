@@ -35,4 +35,18 @@ public class UnsafeAccess {
         }
         UNSAFE = u;
     }
+    /**
+     * Returns the address of the given field in the class or throws
+     * an InternalError if not found.
+     * @param clazz
+     * @param fieldName
+     * @return
+     */
+    public static long addressOf(Class<?> clazz, String fieldName) {
+        try {
+            return UNSAFE.objectFieldOffset(clazz.getDeclaredField(fieldName));
+        } catch (NoSuchFieldException ex) {
+            throw new InternalError(ex);
+        }
+    }
 }
